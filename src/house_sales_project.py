@@ -157,16 +157,13 @@ def prepare_model_features(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series | 
     return data, y
 
 
-def build_model(model) -> Pipeline:
-    """Create a preprocessing + estimator pipeline fitted on training data only."""
-    # Column types are selected from the training feature frame when run_models calls
-    # this function. This placeholder is replaced by make_model_pipeline below.
-    raise NotImplementedError("Use make_model_pipeline with the training features.")
-
-
 def make_model_pipeline(X: pd.DataFrame, estimator) -> Pipeline:
+    X = X.copy()
     numeric_columns = X.select_dtypes(include=["number"]).columns.tolist()
     categorical_columns = [c for c in X.columns if c not in numeric_columns]
+    # Normalize pandas nullable-string missing values for scikit-learn imputers.
+    for column in categorical_columns:
+        X[column] = X[column].astype("object").where(X[column].notna(), np.nan)
 
     numeric_pipeline = Pipeline(
         steps=[("imputer", SimpleImputer(strategy="median"))]

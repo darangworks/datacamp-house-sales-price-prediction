@@ -18,9 +18,10 @@ RealAgents wants to estimate a house's sale price from its characteristics so it
 
 ## Tools
 
-- Python
+- Python 3.10+
 - pandas and NumPy
 - scikit-learn
+- pytest for automated tests
 - Missing-value imputation and one-hot encoding
 - Linear Regression and Random Forest Regression
 
@@ -28,11 +29,16 @@ RealAgents wants to estimate a house's sale price from its characteristics so it
 
 ```text
 .
+├── .github/
+│   └── workflows/
+│       └── tests.yml
 ├── data/
 │   └── raw/                 # Add authorized course CSV files here locally
 ├── outputs/                 # Generated outputs (not committed)
 ├── src/
 │   └── house_sales_project.py
+├── tests/
+│   └── test_house_sales_project.py
 ├── .gitignore
 ├── requirements.txt
 └── README.md
@@ -42,7 +48,7 @@ RealAgents wants to estimate a house's sale price from its characteristics so it
 
 The DataCamp course data are **not included** in this repository. Do not upload course-provided data unless the license or course terms explicitly allow redistribution.
 
-To run the project locally, place the authorized files in `data/raw/`:
+To run the complete workflow locally, place the authorized files in `data/raw/`:
 
 - `house_sales.csv`
 - `train.csv`
@@ -50,20 +56,38 @@ To run the project locally, place the authorized files in `data/raw/`:
 
 The script expects the missing-value marker `--` used in the course dataset.
 
-## Run
+## Setup and run
 
-Python 3.10 or newer is recommended.
+Create and activate a virtual environment, then install the dependencies:
 
 ```bash
+python -m venv .venv
+# Windows PowerShell:
+.\.venv\Scripts\Activate.ps1
+# macOS/Linux:
+source .venv/bin/activate
+
 python -m pip install -r requirements.txt
 python src/house_sales_project.py
 ```
 
 The script writes the cleaned data, bedroom-price summary, and model predictions to `outputs/`. Generated CSVs and raw data are ignored by Git to avoid accidentally publishing course data.
 
-## Validation notes
+## Run tests
+
+The tests use small synthetic data and do not require the private/course CSV files:
+
+```bash
+python -m pytest -q
+```
+
+GitHub Actions runs the test suite on pushes and pull requests. A passing test suite checks the tested behaviors; it does not by itself validate predictions against the original course data or establish model quality.
+
+## Validation notes and limitations
 
 The cleaning step checks the expected columns, allowed city and house-type values, and remaining missing values. The modeling workflow fits preprocessing on the training data and applies the fitted transformations to validation data to avoid fitting encoders or imputers on validation rows.
+
+The baseline intentionally excludes `house_id` and `sale_date` as model features. The validation data are used for predictions; this script does not report a held-out performance metric because the validation target may not be available.
 
 **Scope:** This is a practical learning/portfolio project, not a deployed pricing service. Model quality should be assessed with an appropriate held-out target and metrics before using predictions for business decisions.
 

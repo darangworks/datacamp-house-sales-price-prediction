@@ -154,6 +154,15 @@ def prepare_model_features(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series | 
         )
     if "city" in data.columns:
         data["city"] = data["city"].astype("string").str.strip()
+
+    # Convert pandas nullable extension dtypes to NumPy-compatible object
+    # columns before passing data to scikit-learn's imputers.
+    numeric_columns = set(data.select_dtypes(include=["number"]).columns)
+    for column in data.columns:
+        if column not in numeric_columns:
+            data[column] = data[column].astype("object").where(
+                data[column].notna(), np.nan
+            )
     return data, y
 
 
